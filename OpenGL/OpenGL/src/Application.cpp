@@ -58,7 +58,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 
 	glShaderSource(id, 1, &src, nullptr);
 	glCompileShader(id);
-	
+
 	//Error handling
 	int result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
@@ -131,11 +131,20 @@ int main(void)
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	float positions[6] =
+	//Determino le posizioni dei vertici
+	float positions[] =
 	{
-		-0.5f, -0.5f, 
-		 0.0f,  0.5f, 
-		 0.5f, -0.5f
+		-0.5f, -0.5f,
+		 0.5f, -0.5f,
+		 0.5f,  0.5f,
+		-0.5f,  0.5f,
+	};
+
+	//Index buffer, mi serve per sapere quali vertici mi servono per disegnare i triangoli
+	unsigned int indices[] =
+	{
+		0, 1, 2,
+		2, 3, 0
 	};
 
 	unsigned int VAO; glGenVertexArrays(1, &VAO); glBindVertexArray(VAO);
@@ -148,7 +157,7 @@ int main(void)
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
 	//Fillo il buffer. Posso anche allocare solo e fillare poi, in caso
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 
 	//Abilito l'array di attributi. Posso farlo anche prima di definire gli attributi,
 	// tanto OpenGl funziona a state machine, quindi non è che controlla
@@ -156,6 +165,13 @@ int main(void)
 
 	//Definisco gli attributi del buffer. In questo caso,2D vertex positions
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+	//Faccio la stessa cosa per l'index buffer
+	//ATTENZIONE: usare sempre uint per index buffer
+	unsigned int ibo;
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	//Recupero lo shader
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -178,7 +194,10 @@ int main(void)
 
 		//Disegno un triangolo usando il vertex buffer di cui sopra. Non avendo un index buffer,
 		// uso glDrawArrays. Se ne avessimo uno, useremmo glDrawElements
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		//Per usare l'index buffer invece di glDrawArrays uso glDrawElements
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
