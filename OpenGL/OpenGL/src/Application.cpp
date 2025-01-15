@@ -85,7 +85,6 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	GLCall(glShaderSource(id, 1, &src, nullptr));
 	GLCall(glCompileShader(id));
 
-	//Error handling
 	int result;
 	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
 
@@ -151,6 +150,7 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(1);
 
 	if (glewInit() != GLEW_OK)
 		std::cout << "Error with GLEW" << std::endl;
@@ -205,6 +205,17 @@ int main(void)
 	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 	GLCall(glUseProgram(shader));
 
+	//Setuppo la uniform dopo aver fatto il binding dello shader, se no non sa a chi mandarla
+	//Da opengl 4.3 posso specificare la location di una uniform esplicitamente. Per ora me la recupero
+	//per nome
+	GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+	ASSERT(location != -1);
+	//Setto la uniform
+	GLCall(glUniform4f(location, 0.2f, 0.8f, 0.3f, 1.0f));
+
+	float g = 0.0f;
+	float increment = 0.05f;
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
@@ -222,9 +233,18 @@ int main(void)
 		// uso glDrawArrays. Se ne avessimo uno, useremmo glDrawElements
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		//Animo il colore che passo allo shader
+		GLCall(glUniform4f(location, 0.2f, g, 0.6f, 1.0f));
 
 		//Per usare l'index buffer invece di glDrawArrays uso glDrawElements
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+		if (g > 1.0f)
+			increment = -0.05f;
+		else if (g < 0.0f)
+			increment = 0.05f;
+
+		g += increment;
 
 		/* Swap front and back buffers */
 		GLCall(glfwSwapBuffers(window));
