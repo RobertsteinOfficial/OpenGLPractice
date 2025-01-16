@@ -142,6 +142,10 @@ int main(void)
 	//Prima setto la versione di opengl a 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// The two options can be stated simply: (A) `COMPAT_PROFILE` means recycling one default/global VAO 
+	// for everything; this is the default profile for backward-compatibility. (B) `CORE_PROFILE` means 
+	// defining as many VAOs as you like. Changing VAOs is fewer-calls/optimal/easier/faster than otherwise 
+	// changing the VAAs + VBOs + IBs many times per frame.
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
@@ -223,10 +227,18 @@ int main(void)
 
 	//Sgancio i miei buffer. Al momento è solo un esempio per usare i VAO, dato che se devo disegnare più roba 
 	//non posso tenere gli stessi buffer, ma devo scambiarli al volo
+	//Ha senso sbindare prima il VAO, se no poi quest salverebbe lo stato di sbinding di buffer e ibo, e quindi 
+	//dovrei ribindarli di nuovo. Mentre se sgancio prima il VAO non salva le modifiche ai buffer, e quindi 
+	//mi basta ribindare il VAO e funziona tutto
 	GLCall(glBindVertexArray(0));
 	GLCall(glUseProgram(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+	//Protip if you want to get as modern as OpenGL gets, 4.5 introduced glVertexArrayVertexBuffer 
+	// and glVertexArrayElementBuffer, which explicitly bind a vertex or element buffer to a specific
+	// vertex array, rather than just leaving it out in the open like glBindBuffer(GL_ARRAY_BUFFER) and 
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER) do.
 
 	float g = 0.0f;
 	float increment = 0.05f;
@@ -256,10 +268,11 @@ int main(void)
 		//GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
 		/*GLCall(glEnableVertexAttribArray(0));
 		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));*/
+		//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
 		GLCall(glBindVertexArray(vao));
-		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
+		
 		//Animo il colore che passo allo shader
 		GLCall(glUniform4f(location, 0.2f, g, 0.6f, 1.0f));
 
