@@ -138,6 +138,11 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	//Chiedo a GLFW di inizializzare la finestra nella col profilo core, che non gestisce automaticamente i VAO
+	//Prima setto la versione di opengl a 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "OpenGl Test", NULL, NULL);
@@ -173,7 +178,8 @@ int main(void)
 		2, 3, 0
 	};
 
-	unsigned int VAO; GLCall(glGenVertexArrays(1, &VAO)); GLCall(glBindVertexArray(VAO));
+	//Creo il VAO esplicitamente
+	unsigned int vao; GLCall(glGenVertexArrays(1, &vao)); GLCall(glBindVertexArray(vao));
 
 	//Definisco un vertex buffer
 	unsigned int buffer;
@@ -189,7 +195,9 @@ int main(void)
 	// tanto OpenGl funziona a state machine, quindi non è che controlla
 	GLCall(glEnableVertexAttribArray(0));
 
-	//Definisco gli attributi del buffer. In questo caso,2D vertex positions
+	//Definisco gli attributi del buffer. In questo caso,2D vertex positions. Fa anche da binding tra 
+	//vertex array e buffer, perchè di base prende il vertex array attualmente bindato e il buffer
+	//attualmente bindato e li lega insieme
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
 	//Faccio la stessa cosa per l'index buffer
@@ -213,6 +221,13 @@ int main(void)
 	//Setto la uniform
 	GLCall(glUniform4f(location, 0.2f, 0.8f, 0.3f, 1.0f));
 
+	//Sgancio i miei buffer. Al momento è solo un esempio per usare i VAO, dato che se devo disegnare più roba 
+	//non posso tenere gli stessi buffer, ma devo scambiarli al volo
+	GLCall(glBindVertexArray(0));
+	GLCall(glUseProgram(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
 	float g = 0.0f;
 	float increment = 0.05f;
 
@@ -232,6 +247,18 @@ int main(void)
 		//Disegno un triangolo usando il vertex buffer di cui sopra. Non avendo un index buffer,
 		// uso glDrawArrays. Se ne avessimo uno, useremmo glDrawElements
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		//Qua faccio il binding di nuovo dei buffer e seleziono lo shader da usare
+		GLCall(glUseProgram(shader));
+		//Devo anche runnare l'attribpointer di nuovo, dato che ho rebindato tutto. Chiamo anche l'enable, 
+		//anche questo potrei averlo disabilitato prima da qualche parte.
+		//N.B. queste chiamate non sono più necessarie perchè ho creato il VAO sopra
+		//GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
+		/*GLCall(glEnableVertexAttribArray(0));
+		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));*/
+
+		GLCall(glBindVertexArray(vao));
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
 		//Animo il colore che passo allo shader
 		GLCall(glUniform4f(location, 0.2f, g, 0.6f, 1.0f));
