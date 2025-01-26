@@ -10,6 +10,7 @@
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource
 {
@@ -171,20 +172,21 @@ int main(void)
 			2, 3, 0
 		};
 
-		//Creo il VAO esplicitamente
-		unsigned int vao; GLCall(glGenVertexArrays(1, &vao)); GLCall(glBindVertexArray(vao));
+		//Creo il VAO 
+		unsigned int vao;
+		GLCall(glGenVertexArrays(1, &vao)); 
+		GLCall(glBindVertexArray(vao));
 
+
+		VertexArray va;
 		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+		VertexBufferLayout layout;
+
+		
+		layout.Push<float>(2);
+		va.AddBuffer(vb, layout);
 
 
-		//Abilito l'array di attributi. Posso farlo anche prima di definire gli attributi,
-		// tanto OpenGl funziona a state machine, quindi non è che controlla
-		GLCall(glEnableVertexAttribArray(0));
-
-		//Definisco gli attributi del buffer. In questo caso,2D vertex positions. Fa anche da binding tra 
-		//vertex array e buffer, perchè di base prende il vertex array attualmente bindato e il buffer
-		//attualmente bindato e li lega insieme
-		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
 		//Faccio la stessa cosa per l'index buffer
 		IndexBuffer ib(indices, 6);
@@ -241,8 +243,7 @@ int main(void)
 			//Qua faccio il binding di nuovo dei buffer e seleziono lo shader da usare
 			GLCall(glUseProgram(shader));
 
-
-			GLCall(glBindVertexArray(vao));
+			va.Bind();
 			//Devo anche runnare l'attribpointer di nuovo, dato che ho rebindato tutto. Chiamo anche l'enable, 
 			//anche questo potrei averlo disabilitato prima da qualche parte.
 			//N.B. queste chiamate non sono più necessarie perchè ho creato il VAO sopra
