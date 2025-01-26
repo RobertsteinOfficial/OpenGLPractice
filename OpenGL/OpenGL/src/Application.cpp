@@ -172,12 +172,8 @@ int main(void)
 			2, 3, 0
 		};
 
-		//Creo il VAO 
-		unsigned int vao;
-		GLCall(glGenVertexArrays(1, &vao)); 
-		GLCall(glBindVertexArray(vao));
-
-
+		
+		//Creo il vertex array 
 		VertexArray va;
 		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 		VertexBufferLayout layout;
@@ -210,7 +206,7 @@ int main(void)
 		//Ha senso sbindare prima il VAO, se no poi quest salverebbe lo stato di sbinding di buffer e ibo, e quindi 
 		//dovrei ribindarli di nuovo. Mentre se sgancio prima il VAO non salva le modifiche ai buffer, e quindi 
 		//mi basta ribindare il VAO e funziona tutto
-		GLCall(glBindVertexArray(0));
+		va.Unbind();
 		GLCall(glUseProgram(0));
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
