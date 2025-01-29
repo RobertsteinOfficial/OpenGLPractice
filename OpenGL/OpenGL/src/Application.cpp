@@ -11,104 +11,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
-
-struct ShaderProgramSource
-{
-	std::string VertexSource;
-	std::string FragmentSource;
-};
-
-//Faccio parsing dello shader da file a stringa. Devo dividerlo in due, perchè 
-//l'api si aspetta vertex e fragment separati.
-static ShaderProgramSource ParseShader(const std::string& filepath)
-{
-	//l'apertura del file la faccio con c++ moderno invece che c, anche se è più lento è 
-	//più sicuro e leggibile
-	std::ifstream stream(filepath);
-
-	enum class ShaderType
-	{
-		NONE = -1, VERTEX = 0, FRAGMENT = 1
-	};
-
-	std::string line;
-	std::stringstream ss[2];
-	ShaderType type = ShaderType::NONE;
-
-	//Mi scorro le righe del file. Se trovo il marker shader imposto lo shader come vertex o come 
-	//fragment a seconda di quello che indica il marker, in caso contrario pusho la riga nello shader
-	//corrispondente alla modalità che è settata al momento. 
-	while (getline(stream, line))
-	{
-		if (line.find("#shader") != std::string::npos)
-		{
-			if (line.find("vertex") != std::string::npos)
-				type = ShaderType::VERTEX;
-			else if (line.find("fragment") != std::string::npos)
-				type = ShaderType::FRAGMENT;
-		}
-		else
-		{
-			ss[(int)type] << line << '\n';
-		}
-	}
-
-	return { ss[0].str(), ss[1].str() };
-}
-
-static unsigned int CompileShader(unsigned int type, const std::string& source)
-{
-	GLCall(unsigned int id = glCreateShader(type));
-	//c_str punta all'inizio della stringa
-	const char* src = source.c_str();
-
-	GLCall(glShaderSource(id, 1, &src, nullptr));
-	GLCall(glCompileShader(id));
-
-	int result;
-	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
-
-	//Se la compilazione è andata male, mi recupero il messaggio di errore e lo stampo
-	if (result == GL_FALSE)
-	{
-		int length;
-		GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
-
-		//Voglio allocare l'array di char sullo stack, solo che non posso semplicemente fare
-		//char message[length]; perchè length è una variabile, non una costante. 
-		//Soluzione uno sarebbe allocare sullo heap, ma non mi piace
-		//Soluzione due
-		char* message = (char*)alloca(length * sizeof(char));
-
-		GLCall(glGetShaderInfoLog(id, length, &length, message));
-		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << "shader" << std::endl;
-		std::cout << message << std::endl;
-
-		GLCall(glDeleteShader(id));
-		return 0;
-	}
-
-	return id;
-}
-
-static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
-{
-	GLCall(unsigned int program = glCreateProgram());
-	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-	//Faccio attachment dei due shader al programma, linko e valido il programma
-	GLCall(glAttachShader(program, vs));
-	GLCall(glAttachShader(program, fs));
-
-	GLCall(glLinkProgram(program));
-	GLCall(glValidateProgram(program));
-
-	GLCall(glDeleteShader(vs));
-	GLCall(glDeleteShader(fs));
-
-	return program;
-}
+#include "Shader.h"
 
 int main(void)
 {
@@ -182,24 +85,13 @@ int main(void)
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
-
-
 		//Faccio la stessa cosa per l'index buffer
 		IndexBuffer ib(indices, 6);
-
 		//Recupero lo shader
-		ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-
-		unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-		GLCall(glUseProgram(shader));
-
+		Shader shader("res/shaders/Basic.shader");
+		shader.Bind();
 		//Setuppo la uniform dopo aver fatto il binding dello shader, se no non sa a chi mandarla
-		//Da opengl 4.3 posso specificare la location di una uniform esplicitamente. Per ora me la recupero
-		//per nome
-		GLCall(int location = glGetUniformLocation(shader, "u_Color"));
-		ASSERT(location != -1);
-		//Setto la uniform
-		GLCall(glUniform4f(location, 0.2f, 0.8f, 0.3f, 1.0f));
+		shader.SetUniform4f("u_Color", 0.2f, 0.8f, 0.3f, 1.0f);
 
 		//Sgancio i miei buffer. Al momento è solo un esempio per usare i VAO, dato che se devo disegnare più roba 
 		//non posso tenere gli stessi buffer, ma devo scambiarli al volo
@@ -207,10 +99,9 @@ int main(void)
 		//dovrei ribindarli di nuovo. Mentre se sgancio prima il VAO non salva le modifiche ai buffer, e quindi 
 		//mi basta ribindare il VAO e funziona tutto
 		va.Unbind();
-		GLCall(glUseProgram(0));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
+		vb.Unbind();
+		ib.Unbind();
+		shader.Unbind();
 		//Protip if you want to get as modern as OpenGL gets, 4.5 introduced glVertexArrayVertexBuffer 
 		// and glVertexArrayElementBuffer, which explicitly bind a vertex or element buffer to a specific
 		// vertex array, rather than just leaving it out in the open like glBindBuffer(GL_ARRAY_BUFFER) and 
@@ -237,7 +128,10 @@ int main(void)
 			//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 			//Qua faccio il binding di nuovo dei buffer e seleziono lo shader da usare
-			GLCall(glUseProgram(shader));
+			shader.Bind();
+			
+			//Animo il colore che passo allo shader
+			shader.SetUniform4f("u_Color", 0.3f, g, 0.8f, 1.0f);
 
 			va.Bind();
 			//Devo anche runnare l'attribpointer di nuovo, dato che ho rebindato tutto. Chiamo anche l'enable, 
@@ -248,8 +142,7 @@ int main(void)
 			GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));*/
 			//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
-			//Animo il colore che passo allo shader
-			GLCall(glUniform4f(location, 0.2f, g, 0.6f, 1.0f));
+		
 
 			//Per usare l'index buffer invece di glDrawArrays uso glDrawElements
 			GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
@@ -269,7 +162,9 @@ int main(void)
 		}
 
 		//Pulisco lo shader una volta che ho finito
-		glDeleteProgram(shader);
+		// EDIT: non mi serve più perchè ci pensa il distruttore
+		// di Shader quando esce dallo scope
+		//glDeleteProgram(shader);
 	}
 	glfwTerminate();
 	return 0;
