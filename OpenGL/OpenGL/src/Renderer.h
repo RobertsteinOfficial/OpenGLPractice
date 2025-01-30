@@ -2,7 +2,11 @@
 
 #include <GL/glew.h>
 
-//Assertion, se argomento è falso blocco il programma. debugbreak è dipendente dal compilatore, in questo caso VS
+#include "VertexArray.h"
+#include "IndexBuffer.h"
+#include "Shader.h"
+
+//Assertion, se argomento è falso blocco il programma. debugbreak è dipendente dal compilatore
 #define ASSERT(x) if(!(x)) __debugbreak();
 
 //Macro per gestione errore. Pulisco errori vecchi, chiamo funzione, controllo errori nuovi
@@ -14,3 +18,11 @@
 void GLClearError();
 
 bool GLLogCall(const char* function, const char* file, int line);
+
+//C'è chi rende questa classe singleton, dipende da come voglio usarlo immagino
+class Renderer
+{
+public:
+	void Clear() const;
+	void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+};

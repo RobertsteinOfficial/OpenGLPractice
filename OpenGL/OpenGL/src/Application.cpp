@@ -9,6 +9,7 @@
 #include "Renderer.h"
 
 #include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
@@ -107,6 +108,9 @@ int main(void)
 		// vertex array, rather than just leaving it out in the open like glBindBuffer(GL_ARRAY_BUFFER) and 
 		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER) do.
 
+		Renderer renderer;
+
+
 		float g = 0.0f;
 		float increment = 0.05f;
 
@@ -114,38 +118,14 @@ int main(void)
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
-			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-			//Trangolo legacy OPENGL
-			/*glBegin(GL_TRIANGLES);
-			glVertex2f(-0.5f, -0.5f);
-			glVertex2f( 0.0f,  0.5f);
-			glVertex2f( 0.5f, -0.5f);
-			glEnd();*/
+			renderer.Clear();
 
-			//Disegno un triangolo usando il vertex buffer di cui sopra. Non avendo un index buffer,
-			// uso glDrawArrays. Se ne avessimo uno, useremmo glDrawElements
-			//glDrawArrays(GL_TRIANGLES, 0, 6);
-
-			//Qua faccio il binding di nuovo dei buffer e seleziono lo shader da usare
+			//Sta roba sarebbe da spostare, ma dovrei implementare i material
 			shader.Bind();
-			
-			//Animo il colore che passo allo shader
 			shader.SetUniform4f("u_Color", 0.3f, g, 0.8f, 1.0f);
-
-			va.Bind();
-			//Devo anche runnare l'attribpointer di nuovo, dato che ho rebindato tutto. Chiamo anche l'enable, 
-			//anche questo potrei averlo disabilitato prima da qualche parte.
-			//N.B. queste chiamate non sono più necessarie perchè ho creato il VAO sopra
-			//GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-			/*GLCall(glEnableVertexAttribArray(0));
-			GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));*/
-			//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-
-		
-
-			//Per usare l'index buffer invece di glDrawArrays uso glDrawElements
-			GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+			
+			renderer.Draw(va, ib, shader);
 
 			if (g > 1.0f)
 				increment = -0.05f;
