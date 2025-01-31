@@ -24,11 +24,11 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 
 	//Layout setup
 	const auto& elements = layout.GetElements();
+	unsigned int offset = 0;
 
 	for (unsigned int i = 0; i < elements.size(); i++)
 	{
 		const auto& element = elements[i];
-		unsigned int offset = 0;
 
 		//Abilito l'array di attributi. Posso farlo anche prima di definire gli attributi,
 		// tanto OpenGl funziona a state machine, quindi non è che controlla

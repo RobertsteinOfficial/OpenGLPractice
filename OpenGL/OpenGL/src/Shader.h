@@ -30,6 +30,7 @@ public:
 	//Set uniforms.
 	//Si potrebbe fare una funzione template, o comunque fare parsing dello shader per capire 
 	//di che tipo di variabile si tratta
+	void SetUniform1i(const::std::string& name, int value);
 	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 
 private:

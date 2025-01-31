@@ -13,6 +13,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 int main(void)
 {
@@ -60,13 +61,13 @@ int main(void)
 	{
 
 
-		//Determino le posizioni dei vertici
+		//Determino le posizioni dei vertici e le texcoord
 		float positions[] =
 		{
-			-0.5f, -0.5f,
-			 0.5f, -0.5f,
-			 0.5f,  0.5f,
-			-0.5f,  0.5f,
+			-0.5f, -0.5f, 0.0f, 0.0f,
+			 0.5f, -0.5f, 1.0f, 0.0f,
+			 0.5f,  0.5f, 1.0f, 1.0f,
+			-0.5f,  0.5f, 0.0f, 1.0f
 		};
 
 		//Index buffer, mi serve per sapere quali vertici mi servono per disegnare i triangoli
@@ -76,13 +77,17 @@ int main(void)
 			2, 3, 0
 		};
 
-		
-		//Creo il vertex array 
+		//Abilito blending
+		GLCall(glEnable(GL_BLEND));
+		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+		//Creo il vertex array. Contiene posizione dei vertici e texcoord
 		VertexArray va;
-		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
-		VertexBufferLayout layout;
+		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
 		
+		VertexBufferLayout layout;
+		layout.Push<float>(2);
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
@@ -93,6 +98,11 @@ int main(void)
 		shader.Bind();
 		//Setuppo la uniform dopo aver fatto il binding dello shader, se no non sa a chi mandarla
 		shader.SetUniform4f("u_Color", 0.2f, 0.8f, 0.3f, 1.0f);
+		//Recupero la texture, bindo, passo allo shader
+		Texture texture("res/textures/shrekfest.png");
+		texture.Bind();
+		//La texture è bindata allo slot 0, quindi passo 0
+		shader.SetUniform1i("u_Texture", 0);
 
 		//Sgancio i miei buffer. Al momento è solo un esempio per usare i VAO, dato che se devo disegnare più roba 
 		//non posso tenere gli stessi buffer, ma devo scambiarli al volo
