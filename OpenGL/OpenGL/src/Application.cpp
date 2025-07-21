@@ -15,6 +15,10 @@
 #include "Shader.h"
 #include "Texture.h"
 
+//Math library
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 int main(void)
 {
 	GLFWwindow* window;
@@ -82,6 +86,8 @@ int main(void)
 		//GL_SRC_ALPHA e GL_ONE_MINUS_SRC_ALPHA sono due moltiplicatori, il primo per la source e il
 		//secondo per la destination. I loro valori di default sono 1 e 0
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		//Dopo in teoria sarebbe da settare la modde tramite glBlendEquation. Dato che di default è 
+		//additiva (GL_FUNC_ADD) non ne ho bisogno al momento. 
 
 		//Creo il vertex array. Contiene posizione dei vertici e texcoord
 		VertexArray va;
@@ -95,11 +101,27 @@ int main(void)
 
 		//Faccio la stessa cosa per l'index buffer
 		IndexBuffer ib(indices, 6);
+
+
+		//Imposto la matrice di proiezione. Prima me la calcolo
+		//Di default sarebbe quadrata, ma al momento sto lavorando su una finestra
+		//rettangolare. Faccio matrice ortografica tanto sto lavorando in 2D
+		//Per gli argomenti basta specificare delle coordinate che aderiscano all'aspect ratio della finestra
+		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+
+
+
+
 		//Recupero lo shader
 		Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
 		//Setuppo la uniform dopo aver fatto il binding dello shader, se no non sa a chi mandarla
 		shader.SetUniform4f("u_Color", 0.2f, 0.8f, 0.3f, 1.0f);
+
+		//Passo la matrice di proiezione come uniform allo shader
+		shader.SetUniformMat4f("u_MVP", proj);
+
+
 		//Recupero la texture, bindo, passo allo shader
 		Texture texture("res/textures/shrekfest.png");
 		texture.Bind();
