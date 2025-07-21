@@ -87,7 +87,7 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << "shader" << std::endl;
 		std::cout << message << std::endl;
 
-		GLCall(glDeleteShader(id));
+		GLCall(glDeleteShader(id));		//Una volta creato lo shader cancello i file "intermedi". Come se fossero gli obj di c++
 		return 0;
 	}
 
@@ -144,7 +144,9 @@ int Shader::GetUniformLocation(const std::string& name)
 	//per nome
 	GLCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
 	
-	//Potrei fare ASSERT, ma potrebbe essermi utile avere location = -1
+	//Potrei fare ASSERT, ma potrebbe essermi utile avere location = -1.
+	//Non per forza location == -1 è un errore. Magari semplicemente la uniform non è usata nello shader e quindi è
+	//stata rimossa durante la compilazione
 	if (location == -1)
 		std::cout << "Warning: uniform '" << name << "' does not exist" << std::endl;
 

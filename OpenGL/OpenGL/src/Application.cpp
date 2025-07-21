@@ -79,6 +79,8 @@ int main(void)
 
 		//Abilito blending
 		GLCall(glEnable(GL_BLEND));
+		//GL_SRC_ALPHA e GL_ONE_MINUS_SRC_ALPHA sono due moltiplicatori, il primo per la source e il
+		//secondo per la destination. I loro valori di default sono 1 e 0
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 		//Creo il vertex array. Contiene posizione dei vertici e texcoord

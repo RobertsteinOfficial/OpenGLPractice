@@ -11,9 +11,13 @@
 
 //Macro per gestione errore. Pulisco errori vecchi, chiamo funzione, controllo errori nuovi
 //usando # converto la funzione in una stringa, le altre due macro mi restituiscono file e riga della chiamata
+//Uso la direttiva di precompilazione per fare in modo che sta macro runni solo in debug mode
+#ifdef _DEBUG
 #define GLCall(x) GLClearError();\
 	x;\
 	ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+#endif // DEBUG
+
 
 void GLClearError();
 

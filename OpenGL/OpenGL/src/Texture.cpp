@@ -41,7 +41,8 @@ Texture::~Texture()
 
 void Texture::Bind(unsigned int slot) const
 {
-	//Specifico lo slot. Sempre perchè il sistema è una state machine
+	//Specifico lo slot. Sempre perchè il sistema è una state machine, questo vuol dire che una volta che specifico lo 
+	//slot la prossima texture viene bindata a quello slot. Fino a che non cambio manualmente slot. 
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 }
