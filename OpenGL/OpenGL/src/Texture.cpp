@@ -16,7 +16,8 @@ Texture::Texture(const std::string& path)
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 
 	//Setuppo settings per la texture. Devo specificarli obbligatoriamente
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); 
+	//GL_NEAREST tiene i pixel come si trovano, buona per pixel art. GL_LINEAR li interpola, rendendo l'immagine blurry
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
@@ -24,6 +25,9 @@ Texture::Texture(const std::string& path)
 	//Mando la texture.
 	//Potrei anche solo allocare passando un nullptr invece di m_LocalBuffer in caso non avessi i dati pronti
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+
+	//Volendo potrei generare le mipmap
+	//GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 
 	//Faccio poi l'unbind
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));

@@ -38,7 +38,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(640, 480, "OpenGl Test", NULL, NULL);
+	window = glfwCreateWindow(960, 540, "OpenGl Test", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -68,10 +68,10 @@ int main(void)
 		//Determino le posizioni dei vertici e le texcoord
 		float positions[] =
 		{
-			-0.5f, -0.5f, 0.0f, 0.0f,
-			 0.5f, -0.5f, 1.0f, 0.0f,
-			 0.5f,  0.5f, 1.0f, 1.0f,
-			-0.5f,  0.5f, 0.0f, 1.0f
+			100.0f, 100.0f, 0.0f, 0.0f,
+			200.0f, 100.0f, 1.0f, 0.0f,
+			200.0f, 200.0f, 1.0f, 1.0f,
+			100.0f, 200.0f, 0.0f, 1.0f
 		};
 
 		//Index buffer, mi serve per sapere quali vertici mi servono per disegnare i triangoli
@@ -107,10 +107,12 @@ int main(void)
 		//Di default sarebbe quadrata, ma al momento sto lavorando su una finestra
 		//rettangolare. Faccio matrice ortografica tanto sto lavorando in 2D
 		//Per gli argomenti basta specificare delle coordinate che aderiscano all'aspect ratio della finestra
-		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+		glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
 
+		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
 
-
+		glm::mat4 mvp = proj * view * model;
 
 		//Recupero lo shader
 		Shader shader("res/shaders/Basic.shader");
@@ -119,7 +121,7 @@ int main(void)
 		shader.SetUniform4f("u_Color", 0.2f, 0.8f, 0.3f, 1.0f);
 
 		//Passo la matrice di proiezione come uniform allo shader
-		shader.SetUniformMat4f("u_MVP", proj);
+		shader.SetUniformMat4f("u_MVP", mvp);
 
 
 		//Recupero la texture, bindo, passo allo shader
