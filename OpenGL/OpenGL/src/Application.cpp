@@ -24,6 +24,9 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+//Test
+#include "tests/TestClearColour.h"
+
 int main(void)
 {
 	GLFWwindow* window;
@@ -69,23 +72,6 @@ int main(void)
 
 	{
 
-
-		//Determino le posizioni dei vertici e le texcoord
-		float positions[] =
-		{
-			100.0f, 100.0f, 0.0f, 0.0f,
-			200.0f, 100.0f, 1.0f, 0.0f,
-			200.0f, 200.0f, 1.0f, 1.0f,
-			100.0f, 200.0f, 0.0f, 1.0f
-		};
-
-		//Index buffer, mi serve per sapere quali vertici mi servono per disegnare i triangoli
-		unsigned int indices[] =
-		{
-			0, 1, 2,
-			2, 3, 0
-		};
-
 		//Abilito blending
 		GLCall(glEnable(GL_BLEND));
 		//GL_SRC_ALPHA e GL_ONE_MINUS_SRC_ALPHA sono due moltiplicatori, il primo per la source e il
@@ -94,56 +80,6 @@ int main(void)
 		//Dopo in teoria sarebbe da settare la modde tramite glBlendEquation. Dato che di default è 
 		//additiva (GL_FUNC_ADD) non ne ho bisogno al momento. 
 
-		//Creo il vertex array. Contiene posizione dei vertici e texcoord
-		VertexArray va;
-		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-
-		
-		VertexBufferLayout layout;
-		layout.Push<float>(2);
-		layout.Push<float>(2);
-		va.AddBuffer(vb, layout);
-
-		//Faccio la stessa cosa per l'index buffer
-		IndexBuffer ib(indices, 6);
-
-
-		//Imposto la matrice di proiezione. Prima me la calcolo
-		//Di default sarebbe quadrata, ma al momento sto lavorando su una finestra
-		//rettangolare. Faccio matrice ortografica tanto sto lavorando in 2D
-		//Per gli argomenti basta specificare delle coordinate che aderiscano all'aspect ratio della finestra
-		glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
-
-		//Recupero lo shader
-		Shader shader("res/shaders/Basic.shader");
-		shader.Bind();
-		//Setuppo la uniform dopo aver fatto il binding dello shader, se no non sa a chi mandarla
-		shader.SetUniform4f("u_Color", 0.2f, 0.8f, 0.3f, 1.0f);
-
-
-
-
-		//Recupero la texture, bindo, passo allo shader
-		Texture texture("res/textures/shrekfest.png");
-		texture.Bind();
-		//La texture è bindata allo slot 0, quindi passo 0
-		shader.SetUniform1i("u_Texture", 0);
-
-		//Sgancio i miei buffer. Al momento è solo un esempio per usare i VAO, dato che se devo disegnare più roba 
-		//non posso tenere gli stessi buffer, ma devo scambiarli al volo
-		//Ha senso sbindare prima il VAO, se no poi quest salverebbe lo stato di sbinding di buffer e ibo, e quindi 
-		//dovrei ribindarli di nuovo. Mentre se sgancio prima il VAO non salva le modifiche ai buffer, e quindi 
-		//mi basta ribindare il VAO e funziona tutto
-		va.Unbind();
-		vb.Unbind();
-		ib.Unbind();
-		shader.Unbind();
-		//Protip if you want to get as modern as OpenGL gets, 4.5 introduced glVertexArrayVertexBuffer 
-		// and glVertexArrayElementBuffer, which explicitly bind a vertex or element buffer to a specific
-		// vertex array, rather than just leaving it out in the open like glBindBuffer(GL_ARRAY_BUFFER) and 
-		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER) do.
 
 		Renderer renderer;
 
@@ -154,51 +90,23 @@ int main(void)
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui::StyleColorsDark();
 
-		//Posizione del nostro oggetto da renderizzare
-		glm::vec3 translation(200, 200, 0);
-
-		float g = 0.0f;
-		float increment = 0.05f;
+		test::TestClearColour test;
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
-
 			renderer.Clear();
+
+			//Runno la scena test
+			test.OnUpdate(0.0f);
+			test.OnRender();
 
 			//Creo un nuovo frame imgui. Prima di eseguire codice imgui devo aver chiamato questa funzione
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-
-
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-			glm::mat4 mvp = proj * view * model;
-
-
-			//Sta roba sarebbe da spostare, ma dovrei implementare i material
-			shader.Bind();
-			shader.SetUniform4f("u_Color", 0.3f, g, 0.8f, 1.0f);
-			//Passo la matrice di proiezione come uniform allo shader
-			shader.SetUniformMat4f("u_MVP", mvp);
-
-
-			renderer.Draw(va, ib, shader);
-
-			if (g > 1.0f)
-				increment = -0.05f;
-			else if (g < 0.0f)
-				increment = 0.05f;
-
-			g += increment;
-
-			//Finestra imgui
-			{
-				
-				ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			}
+			test.OnImGuiRender();
 
 			//Disegno la roba imgui
 			ImGui::Render();
