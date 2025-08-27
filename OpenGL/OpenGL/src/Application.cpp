@@ -29,6 +29,7 @@
 
 int main(void)
 {
+
 	GLFWwindow* window;
 
 	/* Initialize the library */
@@ -90,23 +91,44 @@ int main(void)
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui::StyleColorsDark();
 
-		test::TestClearColour test;
+		test::Test* currentTest = nullptr;
+		test::TestMenu* testMenu = new test::TestMenu(currentTest);
+		currentTest = testMenu;
+
+		testMenu->RegisterTest<test::TestClearColour>("Clear Colour");
+
+
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
+			GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+
 			/* Render here */
 			renderer.Clear();
 
-			//Runno la scena test
-			test.OnUpdate(0.0f);
-			test.OnRender();
 
 			//Creo un nuovo frame imgui. Prima di eseguire codice imgui devo aver chiamato questa funzione
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-			test.OnImGuiRender();
+
+			if (currentTest)
+			{
+				currentTest->OnUpdate(0.0f);
+				currentTest->OnRender();
+
+				ImGui::Begin("Test");
+				if (currentTest != testMenu && ImGui::Button("<-"))
+				{
+					delete currentTest;
+					currentTest = testMenu;
+				}
+				currentTest->OnImGuiRender();
+				ImGui::End();
+			}
+
+
 
 			//Disegno la roba imgui
 			ImGui::Render();
@@ -119,11 +141,12 @@ int main(void)
 			GLCall(glfwPollEvents());
 		}
 
-		//Pulisco lo shader una volta che ho finito
-		// EDIT: non mi serve più perchè ci pensa il distruttore
-		// di Shader quando esce dallo scope
-		//glDeleteProgram(shader);
+		
+		delete currentTest;
+		if (currentTest != testMenu)
+			delete testMenu;
 	}
+
 
 	//Chiudo imgui
 	ImGui_ImplOpenGL3_Shutdown();
