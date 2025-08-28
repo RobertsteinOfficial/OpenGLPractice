@@ -26,6 +26,7 @@
 
 //Test
 #include "tests/TestClearColour.h"
+#include "tests/TestShrek.h"
 
 int main(void)
 {
@@ -96,6 +97,7 @@ int main(void)
 		currentTest = testMenu;
 
 		testMenu->RegisterTest<test::TestClearColour>("Clear Colour");
+		testMenu->RegisterTest<test::TestShrek>("Shrek");
 
 
 

@@ -5,7 +5,7 @@ namespace test
 {
 	TestShrek::TestShrek() 
 		: vb(positions, 4 * 4 * sizeof(float)), ib(indices, 6), 
-		shader("res / shaders / Basic.shader"), texture("res/textures/shrekfest.png"),
+		shader("res/shaders/Basic.shader"), texture("res/textures/shrekfest.png"),
 		translation(200, 200, 0)
 	{
 		GLCall(glEnable(GL_BLEND));
@@ -38,8 +38,6 @@ namespace test
 		
 	}
 		
-
-
 
 	TestShrek::~TestShrek()
 	{

@@ -31,7 +31,8 @@ void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& 
 	shader.Bind();
 	va.Bind();
 	//Non dovrebbe servire bindare ib, perchè è già bindato su va
-	//ib.Bind();
+	//E invece no
+	ib.Bind();
 
 	//Per usare l'index buffer invece di glDrawArrays uso glDrawElements
 	//Al momento assumo che l'index buffer lavori solo con uint e quindi l'ho hardcodato. Se per esempio 
