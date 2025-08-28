@@ -26,6 +26,7 @@
 
 //Test
 #include "tests/TestClearColour.h"
+#include "tests/TestTexture2D.h"
 #include "tests/TestShrek.h"
 
 int main(void)
@@ -97,6 +98,7 @@ int main(void)
 		currentTest = testMenu;
 
 		testMenu->RegisterTest<test::TestClearColour>("Clear Colour");
+		testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
 		testMenu->RegisterTest<test::TestShrek>("Shrek");
 
 

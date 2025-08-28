@@ -3,8 +3,8 @@
 #include "imgui/imgui.h"
 namespace test
 {
-	TestShrek::TestShrek() 
-		: vb(positions, 4 * 4 * sizeof(float)), ib(indices, 6), 
+	TestShrek::TestShrek()
+		: vb(positions, 4 * 4 * sizeof(float)), ib(indices, 6),
 		shader("res/shaders/Basic.shader"), texture("res/textures/shrekfest.png"),
 		translation(200, 200, 0)
 	{
@@ -17,27 +17,27 @@ namespace test
 		layout.Push<float>(2);
 
 		va.AddBuffer(vb, layout);
-		
-		
+
+
 		proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
 		view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
 
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.3f, g, 0.8f, 1.0f);
-		
+
 
 		texture.Bind();
 		//La texture  bindata allo slot 0, quindi passo 0
 		shader.SetUniform1i("u_Texture", 0);
 
-		
-		va.Unbind();
-		vb.Unbind();
-		ib.Unbind();
-		shader.Unbind();
-		
+
+		//va.Unbind();
+		//vb.Unbind();
+		//ib.Unbind();
+		//shader.Unbind();
+
 	}
-		
+
 
 	TestShrek::~TestShrek()
 	{
@@ -70,14 +70,11 @@ namespace test
 
 		g += increment;
 
-		//Finestra imgui
-		{
-
-			ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		}
+		
 	}
 	void TestShrek::OnImGuiRender()
 	{
+		ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 }
